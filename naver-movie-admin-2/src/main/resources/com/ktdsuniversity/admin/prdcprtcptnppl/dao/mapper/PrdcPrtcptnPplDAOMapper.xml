@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="PrdcPrtcptnPpl">
+
+	<insert id="createNewPrdcPrtcptnPpl"
+			parameterType="com.ktdsuniversity.admin.prdcprtcptnppl.vo.PrdcPrtcptnPplVO">
+		INSERT INTO PRDC_PRTCPTN_PPL
+			 ( PRDC_PRTCPTN_ID
+			 , MV_ID
+			 , MV_PPL_ID
+			 , MSSN
+			 , RSPNSBLT_ROL_NM
+			 , CRT_DT
+			 , CRTR, MDFY_DT
+			 , MDFYR
+			 , USE_YN
+			 , DEL_YN)
+	   VALUES
+	   		 ( 'MP-' || TO_CHAR(SYSDATE, 'YYYYMMDD') || '-' || LPAD(SEQ_PRDC_PRTCPTN_PPL_PK.NEXTVAL, 5, '0')
+	   		 , #{mvId}
+	   		 , #{mvPplId}
+	   		 , #{mssn}
+	   		 , #{rspnsbltRolNm}
+	   		 , SYSDATE
+	   		 , #{crtr}
+	   		 , SYSDATE
+	   		 , #{mdfyr}
+	   		 , NVL(#{useYn}, 'N')
+	   		 , 'N' )
+	</insert>
+
+	<update id="updateOnePrdcPrtcptnPpl"
+			parameterType="com.ktdsuniversity.admin.prdcprtcptnppl.vo.PrdcPrtcptnPplVO">
+		UPDATE PRDC_PRTCPTN_PPL
+		   SET RSPNSBLT_ROL_NM=#{rspnsbltRolNm} 
+		 WHERE PRDC_PRTCPTN_ID=#{prdcPrtcptnId}
+	</update>
+
+
+	<update id="deleteOnePrdcPrtcptnPplByPrdcPrtcptnPplId"
+			parameterType="string">
+		UPDATE PRDC_PRTCPTN_PPL
+		   SET DEL_YN='Y' 
+		 WHERE PRDC_PRTCPTN_ID=#{_parameter}
+	</update>
+</mapper>

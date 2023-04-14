@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="MvPpl">
+
+	<resultMap id="mvPplVOMap" type="com.ktdsuniversity.admin.mvppl.vo.MvPplVO" autoMapping="true">
+		
+		<id property="mvPplId" column="MV_PPL_ID"/>
+		<association property="crtrMbrVO" javaType="com.ktdsuniversity.admin.mbr.vo.MbrVO" autoMapping="true">
+			<id property="mbrId" column="CRTR" />
+			<result property="mbrNm" column="CRTR_MBR_NM"/>
+		</association>
+		<association property="mdfyrMbrVO" javaType="com.ktdsuniversity.admin.mbr.vo.MbrVO" autoMapping="true">
+			<id property="mbrId" column="MDFYR" />
+			<result property="mbrNm" column="MDFYR_MBR_NM"/>
+		</association>
+	</resultMap>
+
+	<select id="readAllMvPpl"
+			parameterType="com.ktdsuniversity.admin.mvppl.vo.MvPplVO"
+			resultMap="mvPplVOMap">
+		<include refid="Common.page_header" />
+		SELECT MP.MV_PPL_ID
+			 , MP.PRFL_PCTR
+			 , MP.NM
+			 , MP.RL_NM
+			 , TO_CHAR(MP.CRT_DT, 'YYYY-MM-DD HH24:MI:SS') CRT_DT
+			 , MP.CRTR
+			 , TO_CHAR(MP.MDFY_DT, 'YYYY-MM-DD HH24:MI:SS') MDFY_DT
+			 , MP.MDFYR
+			 , MP.USE_YN
+			 , MP.DEL_YN
+			 , CRTR_M.MBR_NM CRTR_MBR_NM
+			 , MDFYR_M.MBR_NM MDFYR_MBR_NM
+		  FROM MV_PPL MP
+		 INNER JOIN MBR CRTR_M
+		 	ON MP.CRTR = CRTR_M.MBR_ID
+		 INNER JOIN MBR MDFYR_M
+		 	ON MP.MDFYR = MDFYR_M.MBR_ID
+		 WHERE MP.DEL_YN = 'N'
+		   AND MP.CRT_DT >= TO_DATE(#{startDt} || ' 00:00:00', 'YYYY-MM-DD HH24:MI:SS')
+		   AND MP.CRT_DT <![CDATA[<=]]> TO_DATE(#{endDt} || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+		 /*파라미터 체크*/
+		 <if test='nm != null and nm != ""'>
+		   AND MP.NM LIKE '%' || #{NM} || '%'
+		 </if>
+		 <if test='rlNm != null and rlNm != ""'>
+		   AND MP.RL_NM LIKE '%' || #{rlNm} ||'%'	
+		 </if>
+		 ORDER BY MP.NM ASC
+		<include refid="Common.page_footer" />
+		 
+	</select>
+	
+	<select id="readAllGnrVONoPagenation"
+			parameterType="string"
+			resultType="com.ktdsuniversity.admin.mvppl.vo.MvPplVO">
+		SELECT MP.MV_PPL_ID
+			 , MP.PRFL_PCTR
+			 , MP.NM
+			 , MP.RL_NM
+			 , TO_CHAR(MP.CRT_DT, 'YYYY-MM-DD HH24:MI:SS') CRT_DT
+			 , MP.CRTR
+			 , TO_CHAR(MP.MDFY_DT, 'YYYY-MM-DD HH24:MI:SS') MDFY_DT
+			 , MP.MDFYR
+			 , MP.USE_YN
+			 , MP.DEL_YN
+			 , CRTR_M.MBR_NM CRTR_MBR_NM
+			 , MDFYR_M.MBR_NM MDFYR_MBR_NM
+		  FROM MV_PPL MP
+		 INNER JOIN MBR CRTR_M
+		 	ON MP.CRTR = CRTR_M.MBR_ID
+		 INNER JOIN MBR MDFYR_M
+		 	ON MP.MDFYR = MDFYR_M.MBR_ID
+		 WHERE MP.DEL_YN = 'N'
+		   AND MP.NM LIKE '%' || #{_parameter} || '%'
+		 ORDER BY MP.NM ASC
+	</select>
+	
+	<select id="readOneMvPplVOByMvPplId"
+			parameterType="string"
+			resultType="com.ktdsuniversity.admin.mvppl.vo.MvPplVO">
+		SELECT PRFL_PCTR
+			 , NM
+			 , RL_NM
+			 , USE_YN
+		  FROM MV_PPL 
+		 WHERE MV_PPL_ID=#{mvPplId}
+		   AND DEL_YN='N'
+	</select>
+
+	<insert id="createOneMvPpl"
+			parameterType="com.ktdsuniversity.admin.mvppl.vo.MvPplVO">
+		INSERT INTO MV_PPL
+		  	 ( MV_PPL_ID
+		  	 , PRFL_PCTR
+		  	 , NM
+		  	 , RL_NM
+		  	 , CRT_DT
+		  	 , CRTR
+		  	 , MDFY_DT
+		  	 , MDFYR
+		  	 , USE_YN
+		  	 , DEL_YN)
+	   VALUES
+	   		 ( 'PD-' || TO_CHAR(SYSDATE, 'YYYYMMDD') || '-' || LPAD(SEQ_MV_PPL_PK.NEXTVAL, 5, '0')
+	   		 , #{prflPctr}
+	   		 , #{nm}
+	   		 , #{rlNm}
+	   		 , SYSDATE
+	   		 , #{crtr}
+	   		 , SYSDATE
+	   		 , #{mdfyr}
+	   		 , NVL(#{useYn}, 'N') 
+	   		 , 'N' )
+	</insert>
+	
+	<update id="updateOneMvPplByMvPplId"
+			parameterType="com.ktdsuniversity.admin.mvppl.vo.MvPplVO">
+		UPDATE MV_PPL
+		   SET MDFY_DT=SYSDATE
+		   	 , MDFYR=#{mdfyr}
+		   	 , PRFL_PCTR=#{prflPctr}
+		   	 , RL_NM=#{rlNm}
+		   	<if test='nm != null and nm != ""'>
+		   	 , NM=#{nm}
+		   	</if>
+		   	 <if test='useYn != null and useYn != ""'>
+		   	 , USE_YN=NVL(#{useYn}, 'N')
+		   	 </if> 
+	     WHERE MV_PPL_ID=#{mvPplId}
+	</update>
+	
+	<update id="deleteOneMvPplByMvPplId"
+			parameterType="string">
+		UPDATE MV_PPL
+		   SET DEL_YN='Y' 
+	     WHERE MV_PPL_ID=#{_parameter}
+	</update>
+
+	<update id="deleteMvPplIdBySelectedMvPplId"
+			parameterType="arrayList">
+		UPDATE MV_PPL
+		   SET DEL_YN='Y' 
+	     WHERE MV_PPL_ID IN
+	     <foreach collection="list" item="mvPplId" open="(" close=")" separator=", ">
+	     	#{mvPplId}
+	     </foreach>
+	</update>
+</mapper>

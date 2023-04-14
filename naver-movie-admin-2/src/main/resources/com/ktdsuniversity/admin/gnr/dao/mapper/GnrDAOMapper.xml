@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="Gnr">
+
+	<select id="readAllGnrVO"
+			parameterType="com.ktdsuniversity.admin.gnr.vo.GnrVO"
+			resultType="com.ktdsuniversity.admin.gnr.vo.GnrVO">
+		<include refid="Common.page_header" />
+		SELECT G.GNR_ID
+			 , G.GNR_NM
+			 , TO_CHAR(G.CRT_DT, 'YYYY-MM-DD HH24:MI:SS') CRT_DT
+			 , G.CRTR
+			 , TO_CHAR(G.MDFY_DT, 'YYYY-MM-DD HH24:MI:SS') MDFY_DT
+			 , G.MDFYR
+			 , G.USE_YN
+			 , CRT_M.MBR_NM CRT_MBR_NM
+			 , MDFY_M.MBR_NM MDFY_MBR_NM
+		  FROM GNR G
+		 INNER JOIN MBR CRT_M
+		 	ON G.CRTR = CRT_M.MBR_ID
+		 INNER JOIN MBR MDFY_M
+		 	ON G.MDFYR = MDFY_M.MBR_ID
+		 WHERE G.DEL_YN ='N'
+		 /*파라미터 체크 동적으로 넣는다.*/
+		 <if test='gnrNm != null and gnrNm != ""'>
+		   AND G.GNR_NM LIKE '%' || #{gnrNm} ||'%'
+		 </if>
+		 ORDER BY G.GNR_ID ASC
+		<include refid="Common.page_footer" />
+		 
+	</select>
+	
+	<select id="readAllGnrVONoPagenation"
+			parameterType="string"
+			resultType="com.ktdsuniversity.admin.gnr.vo.GnrVO">
+		SELECT G.GNR_ID
+			 , G.GNR_NM
+			 , TO_CHAR(G.CRT_DT, 'YYYY-MM-DD HH24:MI:SS') CRT_DT
+			 , G.CRTR
+			 , TO_CHAR(G.MDFY_DT, 'YYYY-MM-DD HH24:MI:SS') MDFY_DT
+			 , G.MDFYR
+			 , G.USE_YN
+			 , CRT_M.MBR_NM CRT_MBR_NM
+			 , MDFY_M.MBR_NM MDFY_MBR_NM
+		  FROM GNR G
+		 INNER JOIN MBR CRT_M
+		 	ON G.CRTR = CRT_M.MBR_ID
+		 INNER JOIN MBR MDFY_M
+		 	ON G.MDFYR = MDFY_M.MBR_ID
+		 WHERE G.DEL_YN ='N'
+		   AND G.USE_YN ='Y'
+		   AND G.GNR_NM LIKE '%' || #{_parameter} ||'%'
+		 ORDER BY G.GNR_NM ASC
+	</select>
+
+	<insert id="createOneGnr"
+			parameterType="com.ktdsuniversity.admin.gnr.vo.GnrVO">
+		INSERT INTO MOVIE.GNR
+		     ( GNR_ID
+		     , GNR_NM
+		     , CRT_DT
+		     , CRTR
+		     , MDFY_DT
+		     , MDFYR
+		     , USE_YN
+		     , DEL_YN)
+	   VALUES
+	   		 ( SEQ_GNR_PK.NEXTVAL
+	   		 , #{gnrNm}
+	   		 , SYSDATE
+	   		 , #{crtr}
+	   		 , SYSDATE
+	   		 , #{mdfyr}
+	   		 , NVL(#{useYn}, 'N')
+	   		 , 'N' )
+	</insert>
+	
+	<update id="updateOneGnr"
+			parameterType="com.ktdsuniversity.admin.gnr.vo.GnrVO">
+		UPDATE GNR
+		   SET GNR_NM=#{gnrNm}
+		   	 , MDFY_DT=SYSDATE
+		   	 , MDFYR=#{mdfyr}
+		   	 , USE_YN=#{useYn} 
+		   	 , DEL_YN='N' 
+		 WHERE GNR_ID=#{gnrId}
+	</update>
+	
+	<update id="deleteOneGnr"
+			parameterType="_int">
+		UPDATE GNR
+		   SET DEL_YN='Y' 
+		 WHERE GNR_ID=#{_parameter}
+	</update>
+	
+	<update id="deleteGnrBySelectedGnrId"
+			parameterType="arraylist">
+		UPDATE GNR
+		   SET DEL_YN='Y' 
+		 WHERE GNR_ID IN 
+		 <foreach collection="list" item="gnrId" open="(" close=")" separator=", ">
+		 	#{gnrId}
+		 </foreach>
+		 
+	</update>
+	
+</mapper>
